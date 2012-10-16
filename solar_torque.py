@@ -26,8 +26,8 @@ if any(~npm[:2]) | any(~npm[-3:]):
     warn('Timeframe must start and end in Normal Point mode + 10 minute pad.')
 i1_npm = ~npm[:-2] & npm[1:-1] & npm[2:] 
 i2_npm = npm[:-2] & npm[1:-1] & ~npm[2:]
-i1_npm[nonzero(i1_npm)[0][-1]] = 'FALSE'  # need pairs:  discard last start
-i2_npm[nonzero(i2_npm)[0][0]] = 'FALSE'   # need pairs:  discard first stop
+i1_npm[nonzero(i1_npm)[0][-1]] = False  # need pairs:  discard last start
+i2_npm[nonzero(i2_npm)[0][0]] = False   # need pairs:  discard first stop
 if sum(i1_npm) != sum(i2_npm):
     warn('NPM start and stop times do not correlate.')
 t1_npm = x['AOPCADMD'].times[nonzero(i1_npm)[0] + 2] # delay start time by 5 min
