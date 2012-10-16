@@ -22,19 +22,17 @@ x = fetch.Msidset(msids, t_start, t_stop, stat='5min')
 
 # Identify dwell start and stop times
 npm = (x['AOPCADMD'].vals == 'NPNT') & (x['AOACASEQ'].vals == 'KALM') 
-
 if any(~npm[:2]) | any(~npm[-3:]):
     warn('Timeframe must start and end in Normal Point mode + 10 minute pad.')
-
 i1_npm = ~npm[:-2] & npm[1:-1] & npm[2:] 
 i2_npm = npm[:-2] & npm[1:-1] & ~npm[2:]
-
+i1_npm[nonzero(i1_npm)[0][-1]] = 'FALSE'  # need pairs:  discard last start
+i2_npm[nonzero(i2_npm)[0][0]] = 'FALSE'   # need pairs:  discard first stop
 if sum(i1_npm) != sum(i2_npm):
     warn('NPM start and stop times do not correlate.')
-
 t1_npm = x['AOPCADMD'].times[nonzero(i1_npm)[0] + 2] # delay start time by 5 min
 t2_npm = x['AOPCADMD'].times[nonzero(i2_npm)[0] + 1] 
-t_npm = array([t1_npm[:-1], t2_npm[1:]]).transpose() # need pairs:  discard first stop and last start
+t_npm = array([t1_npm, t2_npm]).transpose() 
 
 # Identify dwells with momentum unloads
 print('filtering dumps, nsm events, and ssm events...')
@@ -61,7 +59,18 @@ bad_ssm = overlap(t_npm, t_ssm)
 bad_short = (t_npm[:,1] - t_npm[:,0]) == 0
 
 # Filter dwells 
-bad = bad_dump | bad_nsm | bad_ssm | bad_short
+bad = bad_dump | bad_nsm | bad_ssm | bad_short 
 t_npm_filt = t_npm[~bad, :]
+dur = t_npm_filt[:,1] - t_npm_filt[:,0]
 
+# Collect momentum and attitude data
+i1 = append(zeros(2, dtype='bool'), i1_npm)
+i2 = append(zeros(1, dtype='bool'), i2_npm, zeros(1, dtype='bool'))
+#pitch_1 = x['PITCH'].vals[i1]
+#pitch_2 = x['PITCH'].vals[i2]
+#roll_1 = x['ROLL'].vals[i1]
+#roll_2 = x['ROLL'].vals[i2]
+#mom_1 = array([x['AOSYMOM1'].vals[i1], x['AOSYMOM2'].vals[i1], x['AOSYMOM3'].vals[i1]]).transpose()
+#mom_2 = array([x['AOSYMOM1'].vals[i2], x['AOSYMOM2'].vals[i2], x['AOSYMOM3'].vals[i2]]).transpose()
+#torque = (mom_2 - mom_1) / dur
 
