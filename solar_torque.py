@@ -26,17 +26,15 @@ if any(~npm[:2]) | any(~npm[-3:]):
     warn('Timeframe must start and end in Normal Point mode + 10 minute pad.')
 i1_npm = ~npm[:-2] & npm[1:-1] & npm[2:] 
 i2_npm = npm[:-2] & npm[1:-1] & ~npm[2:]
+i1_npm = append(zeros(2, dtype='bool'), i1_npm)  # delay start time by 5 min
+i2_npm = append(append(zeros(1, dtype='bool'), i2_npm), zeros(1, dtype='bool'))
 i1_npm[nonzero(i1_npm)[0][-1]] = False  # need pairs:  discard last start
 i2_npm[nonzero(i2_npm)[0][0]] = False   # need pairs:  discard first stop
 if sum(i1_npm) != sum(i2_npm):
     warn('NPM start and stop times do not correlate.')
-t1_npm = x['AOPCADMD'].times[nonzero(i1_npm)[0] + 2] # delay start time by 5 min
-t2_npm = x['AOPCADMD'].times[nonzero(i2_npm)[0] + 1] 
+t1_npm = x['AOPCADMD'].times[i1_npm]
+t2_npm = x['AOPCADMD'].times[i2_npm] 
 t_npm = array([t1_npm, t2_npm]).transpose() 
-
-# Create index that matches dwell start and stop times
-i1 = append(zeros(2, dtype='bool'), i1_npm)
-i2 = append(append(zeros(1, dtype='bool'), i2_npm), zeros(1, dtype='bool'))
 
 # Identify dwells with momentum unloads
 print('filtering dumps, nsm events, and ssm events...')
@@ -64,15 +62,12 @@ bad_short = (t_npm[:,1] - t_npm[:,0]) == 0
 
 # Filter bad dwells 
 bad = bad_dump | bad_nsm | bad_ssm | bad_short 
-t_npm_filt = t_npm[~bad, :]  #do I even use this?
-dur = t_npm_filt[:,1] - t_npm_filt[:,0]
-
-
-i1[nonzero(i1)[0][bad]] = False
-i2[nonzero(i2)[0][bad]] = False
-
-#i1[nonzero(i1)[0][bad]] = False
-
+t = t_npm[~bad, :]  
+dur = t[:,1] - t[:,0]
+i1 = i1_npm
+i2 = i2_npm
+i1[nonzero(i1)[0][bad]] = False  #index for good dwell start times
+i2[nonzero(i2)[0][bad]] = False  #index for good dwell stop times
 
 # Collect momentum and attitude data
 
