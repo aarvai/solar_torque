@@ -19,8 +19,10 @@ msids = ['AOSYMOM1', 'AOSYMOM2', 'AOSYMOM3',
          'AOPCADMD', 'AOACASEQ', 'DIST_SATEARTH', 
          'PITCH', 'ROLL']
 x = fetch.Msidset(msids, t_start, t_stop, stat='5min')
+x.interpolate(dt=300)
 
 # Identify dwell start and stop times
+print('identifying dwell start and stop times...')
 npm = (x['AOPCADMD'].vals == 'NPNT') & (x['AOACASEQ'].vals == 'KALM') 
 if any(~npm[:2]) | any(~npm[-3:]):
     warn('Timeframe must start and end in Normal Point mode + 10 minute pad.')
@@ -62,20 +64,47 @@ bad_short = (t_npm[:,1] - t_npm[:,0]) == 0
 
 # Filter bad dwells 
 bad = bad_dump | bad_nsm | bad_ssm | bad_short 
-t = t_npm[~bad, :]  
-dur = t[:,1] - t[:,0]
 i1 = i1_npm
 i2 = i2_npm
 i1[nonzero(i1)[0][bad]] = False  #index for good dwell start times
 i2[nonzero(i2)[0][bad]] = False  #index for good dwell stop times
 
-# Collect momentum and attitude data
+# Collect average attitude and torque for each dwell
+t1 = x['AOPCADMD'].times[i1]
+t2 = x['AOPCADMD'].times[i2]
+dur = t2 - t1
+pitch_1 = x['PITCH'].vals[i1]
+pitch_2 = x['PITCH'].vals[i2]
+pitch = array(mean(array([pitch_1, pitch_2]), axis=0), dtype='int')
+roll_1 = x['ROLL'].vals[i1]
+roll_2 = x['ROLL'].vals[i2]
+roll = array(mean(array([roll_1, roll_2]), axis=0), dtype='int')
+atts = [(pitch[i], roll[i]) for i in range(len(roll))]
+mom_1 = array([x['AOSYMOM1'].vals[i1], 
+               x['AOSYMOM2'].vals[i1], 
+               x['AOSYMOM3'].vals[i1]]).transpose()
+mom_2 = array([x['AOSYMOM1'].vals[i2], 
+               x['AOSYMOM2'].vals[i2], 
+               x['AOSYMOM3'].vals[i2]]).transpose()
+torque = (mom_2 - mom_1) / array([dur, dur, dur]).transpose()
 
-#pitch_1 = x['PITCH'].vals[i1]
-#pitch_2 = x['PITCH'].vals[i2]
-#roll_1 = x['ROLL'].vals[i1]
-#roll_2 = x['ROLL'].vals[i2]
-#mom_1 = array([x['AOSYMOM1'].vals[i1], x['AOSYMOM2'].vals[i1], x['AOSYMOM3'].vals[i1]]).transpose()
-#mom_2 = array([x['AOSYMOM1'].vals[i2], x['AOSYMOM2'].vals[i2], x['AOSYMOM3'].vals[i2]]).transpose()
-#torque = (mom_2 - mom_1) / dur
+# Compute average torque for each attitude
+print('computing average torque for each attitude...')
+num_atts = len(unique(atts))
+avg_roll = zeros(num_atts)
+avg_pitch = zeros(num_atts)
+avg_torque = zeros((num_atts, 3))
+num_dwells = zeros(num_atts)
+for i in range(num_atts):
+    att = unique(atts)[i]
+    avg_pitch[i] = att[0]
+    avg_roll[i] = att[1]
+    a = all(att == atts, axis=1)
+    num_dwells[i] = sum(a)
+    avg_torque[i,:] = dur[a].dot(torque[a,:]) / sum(dur[a])  
+avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]     
+
+# Plot torques
+figure(1)
+#scatter(avg_pitch, avg_roll, c=avg_torque[:,1], marker = 'o', cmap = cm.jet)
 
