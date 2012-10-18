@@ -34,6 +34,10 @@ t1_npm = x['AOPCADMD'].times[nonzero(i1_npm)[0] + 2] # delay start time by 5 min
 t2_npm = x['AOPCADMD'].times[nonzero(i2_npm)[0] + 1] 
 t_npm = array([t1_npm, t2_npm]).transpose() 
 
+# Create index that matches dwell start and stop times
+i1 = append(zeros(2, dtype='bool'), i1_npm)
+i2 = append(append(zeros(1, dtype='bool'), i2_npm), zeros(1, dtype='bool'))
+
 # Identify dwells with momentum unloads
 print('filtering dumps, nsm events, and ssm events...')
 aounload = fetch.Msid('AOUNLOAD', t_start, t_stop)
@@ -58,14 +62,20 @@ bad_ssm = overlap(t_npm, t_ssm)
 # Identify dwells with zero duration
 bad_short = (t_npm[:,1] - t_npm[:,0]) == 0
 
-# Filter dwells 
+# Filter bad dwells 
 bad = bad_dump | bad_nsm | bad_ssm | bad_short 
-t_npm_filt = t_npm[~bad, :]
+t_npm_filt = t_npm[~bad, :]  #do I even use this?
 dur = t_npm_filt[:,1] - t_npm_filt[:,0]
 
+
+i1[nonzero(i1)[0][bad]] = False
+i2[nonzero(i2)[0][bad]] = False
+
+#i1[nonzero(i1)[0][bad]] = False
+
+
 # Collect momentum and attitude data
-i1 = append(zeros(2, dtype='bool'), i1_npm)
-i2 = append(zeros(1, dtype='bool'), i2_npm, zeros(1, dtype='bool'))
+
 #pitch_1 = x['PITCH'].vals[i1]
 #pitch_2 = x['PITCH'].vals[i2]
 #roll_1 = x['ROLL'].vals[i1]
