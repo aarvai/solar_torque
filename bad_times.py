@@ -12,4 +12,10 @@ nsm = ['2000:228:00:00:00.000 2000:230:00:00:00.000',  # NSM #2 for lunar eclips
              
 ssm = ['2000:048:00:00:00.000 2000:050:00:00:00.000',  # SSM #2 quat update in NPM
        '2011:187:12:00:00.000 2011:192:04:00:00.000',  # SSM #3 for CEBR timeout
-       '2012:150:00:00:00.000 2012:153:00:00:00.000']  # SSM #4 for FSS degradation              
+       '2012:150:00:00:00.000 2012:153:00:00:00.000']  # SSM #4 for FSS degradation        
+       
+outliers = ['2000:046:05:55:00.000 2000:046:07:46:00.000',  # extreme outlier in roll torque  
+            '2001:202:18:50:00.000 2001:202:21:20:00.000',  # extreme outlier in roll torque  
+            '2003:053:08:20:00.000 2003:053:08:55:00.000',  # extreme outlier in roll torque 
+            '2003:002:02:40:00.000 2003:002:03:00:00.000',  # extreme outlier in pitch torque 
+            '2001:202:18:50:00.000 2001:202:21:20:00.000']  # extreme outlier in yaw torque
