@@ -6,12 +6,15 @@ from Ska.engarchive import fetch_eng as fetch
 from Ska.Matplotlib import plot_cxctime
 
 from utilities import overlap, str_to_secs
-from bad_times import nsm, ssm
+from bad_times import nsm, ssm, outliers
+
+close('all')
 
 # Inputs
-t_start = '2012:001'
+t_start = '2000:001'
 t_stop = Time.DateTime().date
 min_alt = 66400000 #m from center of earth
+min_dur = 1200 #sec 
 
 # Fetch data
 print('fetching data...')
@@ -39,7 +42,7 @@ t2_npm = x['AOPCADMD'].times[i2_npm]
 t_npm = array([t1_npm, t2_npm]).transpose() 
 
 # Identify dwells with momentum unloads
-print('filtering dumps, nsm events, and ssm events...')
+print('filtering dumps, nsm/ssm events, short dwells, perigees, and outliers...')
 aounload = fetch.Msid('AOUNLOAD', t_start, t_stop)
 dump = aounload.vals != 'MON '
 if any(dump[:1]) | any(dump[-2:]):
@@ -59,11 +62,19 @@ bad_nsm = overlap(t_npm, t_nsm)
 t_ssm = str_to_secs(ssm)
 bad_ssm = overlap(t_npm, t_ssm)
 
-# Identify dwells with zero duration
-bad_short = (t_npm[:,1] - t_npm[:,0]) == 0
+# Identify dwells less than 20 minutes (too short for accurate reading)
+bad_short = (t_npm[:,1] - t_npm[:,0]) < min_dur
+
+# Identify dwells with low altitude (gravity gradient torques will dominate)
+bad_low = ((x['DIST_SATEARTH'].vals[i1_npm] < min_alt) | 
+           (x['DIST_SATEARTH'].vals[i2_npm] < min_alt))
+
+# Identify dwells that have previously been flagged as outliers
+t_outliers = str_to_secs(outliers)
+bad_outliers = overlap(t_npm, t_outliers)
 
 # Filter bad dwells 
-bad = bad_dump | bad_nsm | bad_ssm | bad_short 
+bad = bad_dump | bad_nsm | bad_ssm | bad_short | bad_low | bad_outliers
 i1 = i1_npm
 i2 = i2_npm
 i1[nonzero(i1)[0][bad]] = False  #index for good dwell start times
@@ -91,8 +102,8 @@ torque = (mom_2 - mom_1) / array([dur, dur, dur]).transpose()
 # Compute average torque for each attitude
 print('computing average torque for each attitude...')
 num_atts = len(unique(atts))
-avg_roll = zeros(num_atts)
 avg_pitch = zeros(num_atts)
+avg_roll = zeros(num_atts)
 avg_torque = zeros((num_atts, 3))
 num_dwells = zeros(num_atts)
 for i in range(num_atts):
@@ -104,7 +115,48 @@ for i in range(num_atts):
     avg_torque[i,:] = dur[a].dot(torque[a,:]) / sum(dur[a])  
 avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]     
 
-# Plot torques
-figure(1)
-#scatter(avg_pitch, avg_roll, c=avg_torque[:,1], marker = 'o', cmap = cm.jet)
+# Compute average torque for each attitude
+# http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
+print('fitting data...')
+x_data = [(avg_pitch[i], avg_roll[i]), avg_torque[0,:]) for i in range(num_atts)]
+y_data = [(avg_pitch[i], avg_roll[i]), avg_torque[1,:]) for i in range(num_atts)]
+z_data = [(avg_pitch[i], avg_roll[i]), avg_torque[2,:]) for i in range(num_atts)]
 
+# Plot torques by time (to identify outliers for filtering)
+print('plotting...')
+for i in range(3):
+    figure(i+1)
+    plot_cxctime(t1 + 1/2 * dur, torque[:,i], 'b*')
+
+# Plot torques by time, colored by roll, pitch, and dur (again for outliers)
+zipvals = zip((4, 5, 6), (roll_1, pitch_1, dur), ('Roll', 'Pitch', 'Duration'))
+for fig, var, var_str in zipvals:
+    figure(fig)
+    
+    subplot(3,1,1)
+    title('Color = ' + var_str)
+    scatter(t1 + 1/2 * dur, torque[:,0], c=var, lw=0)
+    ylim([-0.00006, 0.00008])
+    colorbar()
+    
+    subplot(3, 1, 2)
+    scatter(t1 + 1/2 * dur, torque[:,1], c=var, lw=0)
+    ylim([-0.0008, 0.0004])
+    colorbar()
+    
+    subplot(3, 1, 3)
+    scatter(t1 + 1/2 * dur, torque[:,2], c=var, lw=0)
+    ylim([-0.0001, 0.0001])
+    colorbar()
+
+# Plot torques by attitude (to see the raw "averaged" data w/o surface fit)
+figure(7)
+subplot(3, 1, 1)
+scatter(avg_pitch, avg_roll, c=avg_torque[:,0], marker='o', cmap=cm.jet, lw=0)
+colorbar()
+subplot(3, 1, 2)
+scatter(avg_pitch, avg_roll, c=avg_torque[:,1], marker='o', cmap=cm.jet, lw=0)
+colorbar()
+subplot(3 ,1, 3)
+scatter(avg_pitch, avg_roll, c=avg_torque[:,2], marker='o', cmap=cm.jet, lw=0)
+colorbar()
