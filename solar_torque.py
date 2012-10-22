@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as pp
+from Scientific.Functions.LeastSquares import leastSquaresFit
+from scipy import optimize
 
 from Chandra import Time
 from Ska.engarchive import fetch_eng as fetch
@@ -116,11 +118,27 @@ for i in range(num_atts):
 avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]     
 
 # Compute average torque for each attitude
-# http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
 print('fitting data...')
-x_data = [(avg_pitch[i], avg_roll[i]), avg_torque[0,:]) for i in range(num_atts)]
-y_data = [(avg_pitch[i], avg_roll[i]), avg_torque[1,:]) for i in range(num_atts)]
-z_data = [(avg_pitch[i], avg_roll[i]), avg_torque[2,:]) for i in range(num_atts)]
+# http://stackoverflow.com/questions/12617985/fitting-a-linear-surface-with-numpy-least-squares
+# has the model:   pitch*a + roll*b + c = torque
+A = array([avg_pitch, avg_roll, ones(num_atts)]).transpose()
+x_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,0])
+
+
+# or http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
+x_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,0]) for i in range(num_atts)]
+y_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,1]) for i in range(num_atts)]
+z_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,2]) for i in range(num_atts)]
+x_init_params = [0, 0, 0]
+y_init_params = [0, 0, 0]
+z_init_params = [0, 0, 0]
+def model(params, xy):
+    a, b, c = params
+    x, y = xy
+    return a*x + b*y + c
+x_fit_params, x_chisquared = optimize.curve_fit(model, x_init_params, x_data)    
+y_fit_params, y_chisquared = optimize.curve_fit(model, y_init_params, y_data) 
+z_fit_params, z_chisquared = optimize.curve_fit(model, z_init_params, z_data) 
 
 # Plot torques by time (to identify outliers for filtering)
 print('plotting...')
@@ -129,7 +147,9 @@ for i in range(3):
     plot_cxctime(t1 + 1/2 * dur, torque[:,i], 'b*')
 
 # Plot torques by time, colored by roll, pitch, and dur (again for outliers)
-zipvals = zip((4, 5, 6), (roll_1, pitch_1, dur), ('Roll', 'Pitch', 'Duration'))
+zipvals = zip((4, 5, 6), 
+              (roll_1, pitch_1, dur), 
+              ('Roll', 'Pitch', 'Duration'))
 for fig, var, var_str in zipvals:
     figure(fig)
     
@@ -159,4 +179,16 @@ scatter(avg_pitch, avg_roll, c=avg_torque[:,1], marker='o', cmap=cm.jet, lw=0)
 colorbar()
 subplot(3 ,1, 3)
 scatter(avg_pitch, avg_roll, c=avg_torque[:,2], marker='o', cmap=cm.jet, lw=0)
+colorbar()
+
+
+figure(8)
+subplot(3, 1, 1)
+scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
+colorbar()
+subplot(3, 1, 2)
+scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
+colorbar()
+subplot(3 ,1, 3)
+scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
 colorbar()
