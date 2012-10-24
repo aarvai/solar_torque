@@ -1,13 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as pp
-from Scientific.Functions.LeastSquares import leastSquaresFit
+#from Scientific.Functions.LeastSquares import leastSquaresFit
 from scipy import optimize
+from mpl_toolkits.mplot3d import Axes3D
 
 from Chandra import Time
 from Ska.engarchive import fetch_eng as fetch
 from Ska.Matplotlib import plot_cxctime
 
-from utilities import overlap, str_to_secs
+from utilities import overlap, str_to_secs, read_torque_table
 from bad_times import nsm, ssm, outliers
 
 close('all')
@@ -16,7 +17,7 @@ close('all')
 t_start = '2000:001'
 t_stop = Time.DateTime().date
 min_alt = 66400000 #m from center of earth
-min_dur = 1200 #sec 
+min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
 
 # Fetch data
 print('fetching data...')
@@ -64,7 +65,7 @@ bad_nsm = overlap(t_npm, t_nsm)
 t_ssm = str_to_secs(ssm)
 bad_ssm = overlap(t_npm, t_ssm)
 
-# Identify dwells less than 20 minutes (too short for accurate reading)
+# Identify dwells that are too short for accurate reading
 bad_short = (t_npm[:,1] - t_npm[:,0]) < min_dur
 
 # Identify dwells with low altitude (gravity gradient torques will dominate)
@@ -120,75 +121,39 @@ avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]
 # Compute average torque for each attitude
 print('fitting data...')
 # http://stackoverflow.com/questions/12617985/fitting-a-linear-surface-with-numpy-least-squares
-# has the model:   pitch*a + roll*b + c = torque
-A = array([avg_pitch, avg_roll, ones(num_atts)]).transpose()
+# has the model:   a + b*pitch + c*pitch^2 + d*roll + e*roll^2 + f*pitch*roll  = torque
+# result:  params = array([a, b, c, d, e, f])
+A = array([ones(num_atts), avg_pitch, avg_pitch*avg_pitch, avg_roll, avg_roll*avg_roll, avg_pitch*avg_roll]).transpose()
 x_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,0])
+y_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,1])
+z_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,2])
 
+# Import old solar torque tables
+p = arange(45, 181)
+r = arange(-30, 31)
+P, R = meshgrid(p, r)
+X_old = read_torque_table('old_x_torques.txt')
+Y_old = read_torque_table('old_y_torques.txt')
+Z_old = read_torque_table('old_z_torques.txt')
+
+# Reformat new torques to match MCC's solar torque table format
+X_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(x_params) for i in range(61)])
+Y_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(y_params) for i in range(61)])
+Z_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(z_params) for i in range(61)])
 
 # or http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
-x_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,0]) for i in range(num_atts)]
-y_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,1]) for i in range(num_atts)]
-z_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,2]) for i in range(num_atts)]
-x_init_params = [0, 0, 0]
-y_init_params = [0, 0, 0]
-z_init_params = [0, 0, 0]
-def model(params, xy):
-    a, b, c = params
-    x, y = xy
-    return a*x + b*y + c
-x_fit_params, x_chisquared = optimize.curve_fit(model, x_init_params, x_data)    
-y_fit_params, y_chisquared = optimize.curve_fit(model, y_init_params, y_data) 
-z_fit_params, z_chisquared = optimize.curve_fit(model, z_init_params, z_data) 
+#x_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,0]) for i in range(num_atts)]
+#y_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,1]) for i in range(num_atts)]
+#z_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,2]) for i in range(num_atts)]
+#x_init_params = [0, 0, 0]
+#y_init_params = [0, 0, 0]
+#z_init_params = [0, 0, 0]
+#def model(params, xy):
+#    a, b, c = params
+#    x, y = xy
+#    return a*x + b*y + c
+#x_fit_params, x_chisquared = optimize.curve_fit(model, x_init_params, x_data)    
+#y_fit_params, y_chisquared = optimize.curve_fit(model, y_init_params, y_data) 
+#z_fit_params, z_chisquared = optimize.curve_fit(model, z_init_params, z_data) 
 
-# Plot torques by time (to identify outliers for filtering)
-print('plotting...')
-for i in range(3):
-    figure(i+1)
-    plot_cxctime(t1 + 1/2 * dur, torque[:,i], 'b*')
-
-# Plot torques by time, colored by roll, pitch, and dur (again for outliers)
-zipvals = zip((4, 5, 6), 
-              (roll_1, pitch_1, dur), 
-              ('Roll', 'Pitch', 'Duration'))
-for fig, var, var_str in zipvals:
-    figure(fig)
-    
-    subplot(3,1,1)
-    title('Color = ' + var_str)
-    scatter(t1 + 1/2 * dur, torque[:,0], c=var, lw=0)
-    ylim([-0.00006, 0.00008])
-    colorbar()
-    
-    subplot(3, 1, 2)
-    scatter(t1 + 1/2 * dur, torque[:,1], c=var, lw=0)
-    ylim([-0.0008, 0.0004])
-    colorbar()
-    
-    subplot(3, 1, 3)
-    scatter(t1 + 1/2 * dur, torque[:,2], c=var, lw=0)
-    ylim([-0.0001, 0.0001])
-    colorbar()
-
-# Plot torques by attitude (to see the raw "averaged" data w/o surface fit)
-figure(7)
-subplot(3, 1, 1)
-scatter(avg_pitch, avg_roll, c=avg_torque[:,0], marker='o', cmap=cm.jet, lw=0)
-colorbar()
-subplot(3, 1, 2)
-scatter(avg_pitch, avg_roll, c=avg_torque[:,1], marker='o', cmap=cm.jet, lw=0)
-colorbar()
-subplot(3 ,1, 3)
-scatter(avg_pitch, avg_roll, c=avg_torque[:,2], marker='o', cmap=cm.jet, lw=0)
-colorbar()
-
-
-figure(8)
-subplot(3, 1, 1)
-scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
-colorbar()
-subplot(3, 1, 2)
-scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
-colorbar()
-subplot(3 ,1, 3)
-scatter(avg_pitch, avg_roll, c=num_dwells, marker='o', cmap=cm.jet, lw=0)
-colorbar()
+# execfile('run_plots.py')
