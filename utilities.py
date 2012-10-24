@@ -26,12 +26,25 @@ def overlap(table1, table2):
     return out
 
 def str_to_secs(table):
-# This function will take a table of time ranges
-# formatted as strings (compatible with bad_times)
-# and convert it to a nx2 array in DateTime seconds
+# This function will take a table of time ranges formatted as strings 
+# (compatible with bad_times) and convert it to a nx2 array in DateTime seconds
     out = np.zeros([len(table), 2])
     for i in range(len(table)):
         t1, t2 = table[i].split()
         out[i, 0] = Time.DateTime(t1).secs
         out[i, 1] = Time.DateTime(t2).secs
     return out    
+
+def read_torque_table(table):
+# This function reads a comma-delimited text file of 31x136 solar torque values 
+# and outputs the values as an array
+    f = open(table)
+    lines = f.readlines()
+    f.close()
+    out = np.zeros((61, 136))
+    line_num = 0
+    for line in lines:
+        fields = line.split()
+        out[line_num, :] = [float(field) for field in fields]
+        line_num = line_num + 1
+    return out
