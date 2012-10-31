@@ -15,7 +15,7 @@ close('all')
 
 # Inputs
 t_start = '2000:001'
-t_stop = Time.DateTime().date
+t_stop = '2012:300'
 min_alt = 66400000 #m from center of earth
 min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
 
@@ -31,7 +31,7 @@ x.interpolate(dt=300)
 print('identifying dwell start and stop times...')
 npm = (x['AOPCADMD'].vals == 'NPNT') & (x['AOACASEQ'].vals == 'KALM') 
 if any(~npm[:2]) | any(~npm[-3:]):
-    warn('Timeframe must start and end in Normal Point mode + 10 minute pad.')
+    raise StandardError('Timeframe must start and end in Normal Point mode + 10 minute pad.')
 i1_npm = ~npm[:-2] & npm[1:-1] & npm[2:] 
 i2_npm = npm[:-2] & npm[1:-1] & ~npm[2:]
 i1_npm = append(zeros(2, dtype='bool'), i1_npm)  # delay start time by 5 min
@@ -39,7 +39,7 @@ i2_npm = append(append(zeros(1, dtype='bool'), i2_npm), zeros(1, dtype='bool'))
 i1_npm[nonzero(i1_npm)[0][-1]] = False  # need pairs:  discard last start
 i2_npm[nonzero(i2_npm)[0][0]] = False   # need pairs:  discard first stop
 if sum(i1_npm) != sum(i2_npm):
-    warn('NPM start and stop times do not correlate.')
+    raise StandardError('NPM start and stop times do not correlate.')
 t1_npm = x['AOPCADMD'].times[i1_npm]
 t2_npm = x['AOPCADMD'].times[i2_npm] 
 t_npm = array([t1_npm, t2_npm]).transpose() 
@@ -49,11 +49,11 @@ print('filtering dumps, nsm/ssm events, short dwells, perigees, and outliers...'
 aounload = fetch.Msid('AOUNLOAD', t_start, t_stop)
 dump = aounload.vals != 'MON '
 if any(dump[:1]) | any(dump[-2:]):
-    warn('Timeframe must not start or end with a momentum dump.')
+    raise StandardError('Timeframe must not start or end with a momentum dump.')
 i1_dump = ~dump[:-1] & dump[1:]
 i2_dump = dump[:-1] & ~dump[1:]
 if sum(i1_dump) != sum(i2_dump):
-    warn('Dump start and stop times do not correlate.')
+    raise StandardError('Dump start and stop times do not correlate.')
 t1_dump = aounload.times[nonzero(i1_dump)[0] + 1]
 t2_dump = aounload.times[nonzero(i2_dump)[0] + 1]
 t_dump = array([t1_dump, t2_dump]).transpose()
