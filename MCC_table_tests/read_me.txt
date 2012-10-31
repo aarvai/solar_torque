@@ -3,10 +3,10 @@
 while calls UNLOAD_check in the same directory.
 
 2.  Manually cut off maneuvers to:
-    Start: 2012:202:04:00:00.000
+    Start: 2012:202:05:00:00.000
     End:   2012:300:00:00:00.000
 
-3.  Use initial conditions A_LOADREVIEW_2012202.040001.txt.
+3.  Use initial conditions A_LOADREVIEW_2012202.050004.txt.
 
 4.  To use Ephemeris File Chandra_12150_12301.stk. 
 

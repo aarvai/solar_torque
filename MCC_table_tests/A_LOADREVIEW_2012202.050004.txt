@@ -1,0 +1,32 @@
+Northrop Grumman/FOT Decom v1.2    SC:2012202.050004  Tue Oct 30 17:18:55 2012  
+COMMAND>                                                                        
+                                                                                
+ PCAD/THERMAL LOAD REVIEW PARAMETERS    SPACECRAFT CONFIGURATION                
+                                                                                
+                                                                                
+ TARGET QUATERNION                      TIME                                    
+ AOTARQT1    :  0.45214413              OBC VCDU    :      340480               
+ AOTARQT2    :  -0.38908762             EPHEM TIME  :  396075620.21             
+ AOTARQT3    :  0.70896805                                                      
+ AOTARQT4    :  0.37621910              PCAD STATE                              
+                                        AOPCADMD    :   NPNT                    
+ MOMENTUM                               AOFATTMD    :   STDY                    
+ AOSYMOM1    :  -0.40                   AODITHEN    :   ENAB                    
+ AOSYMOM2    :  18.07                                                           
+ AOSYMOM3    :  6.64                    SOLAR ARRAY ANGLE                       
+                                        AOSARES2    :  51.87                    
+ MINUS-Z MODEL TEMPERATURES             AOSARES1    :  51.88                    
+ TEPHIN      :^ 122.49                                                          
+ TCYLAFT6    :  75.74                   SIM POSITION                            
+ TMZP_MY     :  101.13                  3TSCPOS     :  75623                    
+ TCYLFMZM    :  105.17                                                          
+ TFSSBKT1    :  164.34                  PSMC MODEL TEMPERATURES                 
+                                        1PDEAAT     :  12.69                    
+ MUPS VALVE MODEL TEMPERATURES          1PIN1AT     :  1.31                     
+ PM1THV1T    :  158.28                                                          
+ PM2THV1T    :^ 162.19                  DPA MODEL TEMPERATURE                   
+                                        1DPAMZT     :  9.29                     
+ FUEL TANK MODEL TEMPERATURE                                                    
+ PFTANK2T    :  74.17                                                           
+                                                                                
+Command==> [snap]                                                               
