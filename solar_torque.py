@@ -8,7 +8,7 @@ from Chandra import Time
 from Ska.engarchive import fetch_eng as fetch
 from Ska.Matplotlib import plot_cxctime
 
-from utilities import overlap, str_to_secs, read_torque_table
+from utilities import overlap, str_to_secs, read_torque_table, write_torque_table
 from bad_times import nsm, ssm, outliers
 
 close('all')
@@ -123,7 +123,7 @@ print('fitting data...')
 # http://stackoverflow.com/questions/12617985/fitting-a-linear-surface-with-numpy-least-squares
 # has the model:   a + b*pitch + c*pitch^2 + d*roll + e*roll^2 + f*pitch*roll  = torque
 # result:  params = array([a, b, c, d, e, f])
-A = array([ones(num_atts), avg_pitch, avg_pitch*avg_pitch, avg_roll, avg_roll*avg_roll, avg_pitch*avg_roll]).transpose()
+A = make_A_matrix(avg_pitch, avg_roll)
 x_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,0])
 y_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,1])
 z_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,2])
@@ -137,9 +137,14 @@ Y_old = read_torque_table('old_y_torques.txt')
 Z_old = read_torque_table('old_z_torques.txt')
 
 # Reformat new torques to match MCC's solar torque table format
-X_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(x_params) for i in range(61)])
-Y_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(y_params) for i in range(61)])
-Z_new = array([array([ones(136), P[i,:], P[i,:]**2, R[i,:], R[i,:]**2, P[i,:] * R[i,:]]).transpose().dot(z_params) for i in range(61)])
+X_new = array([make_A_matrix(P[i,:], R[i,:]).dot(x_params) for i in range(61)])
+Y_new = array([make_A_matrix(P[i,:], R[i,:]).dot(y_params) for i in range(61)])
+Z_new = array([make_A_matrix(P[i,:], R[i,:]).dot(z_params) for i in range(61)])
+
+# Write new torques to comma-delimited text files for easy import into MCC
+write_torque_table(X_new, 'new_x_torques.txt')
+write_torque_table(Y_new, 'new_y_torques.txt')
+write_torque_table(Z_new, 'new_z_torques.txt')
 
 # or http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
 #x_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,0]) for i in range(num_atts)]
