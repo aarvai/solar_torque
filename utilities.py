@@ -81,17 +81,3 @@ def read_MCC_results(table):
         actuals[line_num, :] = [float(field) for field in fields[5:8]]
         line_num = line_num + 1
     return predicts, actuals
-
-def make_A_matrix(p, r):
-    """This function creates the following matrix using a user-defined pitch p and roll r
-    A = array([ones(len(p)), p, p*p, r, r*r, p*r]).transpose()
-    A can be used in the model:
-    a + b*p + c*p^2 + d*r + e*r^2 + f*p*r  = torque
-    when it is simplified to A * x = b where:
-    A = provided above
-    x = array([a, b, c, d, e, f])
-    b = array of torques
-    """
-    A = np.array([np.ones(len(p)), p, p*p, r, r*r, p*r]).transpose()
-    return A
-    
