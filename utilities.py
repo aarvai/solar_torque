@@ -59,7 +59,7 @@ def write_torque_table(A, filename):
     user-defined filename.
     """
     f = open(filename, 'w')
-    for row in range(size(A, axis=0)):
+    for row in range(np.size(A, axis=0)):
         A[row,:].tofile(f, sep=',')
         f.write('\n')
     f.close()    
@@ -83,7 +83,7 @@ def read_MCC_results(table):
     return predicts, actuals
 
 def make_A_matrix(p, r):
-    "This function creates the following matrix using a user-defined pitch p and roll r
+    """This function creates the following matrix using a user-defined pitch p and roll r
     A = array([ones(len(p)), p, p*p, r, r*r, p*r]).transpose()
     A can be used in the model:
     a + b*p + c*p^2 + d*r + e*r^2 + f*p*r  = torque
@@ -92,5 +92,6 @@ def make_A_matrix(p, r):
     x = array([a, b, c, d, e, f])
     b = array of torques
     """
-    A = array([ones(len(p)), p, p*p, r, r*r, p*r]).transpose()
+    A = np.array([np.ones(len(p)), p, p*p, r, r*r, p*r]).transpose()
+    return A
     
