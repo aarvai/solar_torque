@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib import pyplot as pp
-#from Scientific.Functions.LeastSquares import leastSquaresFit
 from scipy import optimize
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -14,8 +13,8 @@ from bad_times import nsm, ssm, outliers
 close('all')
 
 # Inputs
-t_start = '2000:001'
-t_stop = '2012:300'
+t_start = '2008:001'
+t_stop = '2012:310'
 min_alt = 66400000 #m from center of earth
 min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
 
@@ -69,8 +68,10 @@ bad_ssm = overlap(t_npm, t_ssm)
 bad_short = (t_npm[:,1] - t_npm[:,0]) < min_dur
 
 # Identify dwells with low altitude (gravity gradient torques will dominate)
-bad_low = ((x['DIST_SATEARTH'].vals[i1_npm] < min_alt) | 
-           (x['DIST_SATEARTH'].vals[i2_npm] < min_alt))
+i1_npm_ind = nonzero(i1_npm)[0]
+i2_npm_ind = nonzero(i2_npm)[0]
+min_dwell_alt = array([min(x['DIST_SATEARTH'].vals[i1_npm_ind[i]:i2_npm_ind[i]]) for i in range(len(i1_npm_ind))])
+bad_low = min_dwell_alt < min_alt
 
 # Identify dwells that have previously been flagged as outliers
 t_outliers = str_to_secs(outliers)
@@ -117,10 +118,10 @@ for i in range(num_atts):
     a = all(att == atts, axis=1)
     num_dwells[i] = sum(a)
     total_dur[i] = sum(dur[a])
-    avg_torque[i,:] = dur[a].dot(torque[a,:]) / sum(dur[a])  
+    avg_torque[i,:] = dur[a].dot(torque[a,:]) / sum(dur[a]) #weighted by dur
 avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]     
 
-# Fit a smooth surface to the computed torques using fit approach #5
+# Fit a smooth surface to the computed torques 
 print('fitting data...')
 def model_x(att, a, b, c):
     return a + b*att[0] + c*att[1]
@@ -190,86 +191,3 @@ f.close()
 #f.close()
 
 # execfile('run_plots.py')
-
-# fit #1:  http://stackoverflow.com/questions/12617985/fitting-a-linear-surface-with-numpy-least-squares
-# has the model:   a + b*pitch + c*pitch^2 + d*roll + e*roll^2 + f*pitch*roll  = torque
-# result:  params = array([a, b, c, d, e, f])
-# A = make_A_matrix(avg_pitch, avg_roll)
-# x_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,0])
-# y_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,1])
-# z_params, x_resid, rank, sigma = lstsq(A, avg_torque[:,2])
-
-#fit 2:  http://www.velocityreviews.com/forums/t329682-surface-fitting-library-for-python.html
-#x_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,0]) for i in range(num_atts)]
-#y_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,1]) for i in range(num_atts)]
-#z_data = [((avg_pitch[i], avg_roll[i]), avg_torque[i,2]) for i in range(num_atts)]
-#x_init_params = [0, 0, 0]
-#y_init_params = [0, 0, 0]
-#z_init_params = [0, 0, 0]
-#def model(params, xy):
-#    a, b, c = params
-#    x, y = xy
-#    return a*x + b*y + c
-#x_fit_params, x_chisquared = leastSquaresFit(model, x_init_params, x_data)    
-#y_fit_params, y_chisquared = leastSquaresFit(model, y_init_params, y_data) 
-#z_fit_params, z_chisquared = leastSquaresFit(model, z_init_params, z_data) 
-
-#fit 3:  http://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
-#print('fitting data...')
-#def model(att, a, b, c, d, e, f, g, h, i):
-#    return a + b*att[0] + c*att[1] + d*sin(att[0]*e + f) + g*sin(att[1]*h + i)
-#avg_atts_array = array(avg_atts).transpose()
-#x0 = [-0.000011, 0.0000001, 0.00001,  0,       0,          0,       0, 0, 0]
-#y0 = [-0.000060, 0,         0,       -0.00005, 0.04363323, 1.91986, 0, 0, 0]
-#z0 = [0,         0,        -0.000015, 0,       0,          0,       0, 0, 0]
-#x_params, x_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,0], p0=x0, sigma=total_dur, maxfev=1000000)    
-#y_params, y_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,1], p0=y0, sigma=total_dur, maxfev=1000000) 
-#z_params, z_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,2], p0=z0, sigma=total_dur, maxfev=1000000) 
-
-# fit #4:  slightly different model
-#print('fitting data...')
-#def model(att, a, b, c, d, e, f, g, h):
-#    return a + b*att[0] + c*att[0]*att[0] + d*att[1] + e*att[1]*att[1] * f*sin(att[0]*g + h) 
-#avg_atts_array = array(avg_atts).transpose()
-#x0 = [-0.000011, 0.0000001, 0,  0.00001,  0,  0,       0,          0     ]
-#y0 = [-0.000060, 0,         0,  0,        0, -0.00005, 0.04363323, 1.91986]
-#z0 = [0,         0,         0, -0.000015, 0,  0,       0,          0     ]
-#x_params, x_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,0], p0=x0, sigma=total_dur, maxfev=1000000)    
-#y_params, y_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,1], p0=y0, sigma=total_dur, maxfev=1000000) 
-#z_params, z_covar = optimize.curve_fit(model, avg_atts_array, avg_torque[:,2], p0=z0, sigma=total_dur, maxfev=1000000) 
-
-# fit #5:  different model for each axis
-#print('fitting data...')
-#def model_x(att, a, b, c):
-#    return a + b*att[0] + c*att[1]
-#def model_y(att, a, b, c, d):
-#    return a + b*sin(att[0]*c + d) 
-#def model_z(att, a, b):
-#    return a + b*att[1]
-#avg_atts_array = array(avg_atts).transpose()
-#x0 = [ -6.24346074e-06,   6.51787933e-08,   7.25513601e-07]
-#y0 = [ -6.46051399e-05,  -4.08457660e-05,   4.69801335e-02,   1.46983147e+00]
-#z0 = [  4.74038890e-06,  -1.35816177e-06]
-#x_params, x_covar = optimize.curve_fit(model_x, avg_atts_array, avg_torque[:,0], p0=x0, sigma=total_dur, maxfev=1000000)    
-#y_params, y_covar = optimize.curve_fit(model_y, avg_atts_array, avg_torque[:,1], p0=y0, sigma=total_dur, maxfev=1000000) 
-#z_params, z_covar = optimize.curve_fit(model_z, avg_atts_array, avg_torque[:,2], p0=z0, sigma=total_dur, maxfev=1000000) 
-
-
-
-
-
-
-
-
-#Per http://www.coursehero.com/file/5970417/lec13nonlinearregression/:
-#There are several approaches, some easier to use and some are more robust. leastSquaresFit in 
-
-#Scientific.Functions.LeastSquares 
-#use: fit=leastSquaresFit(funct,params,data) 
-#comments: pretty easy to use, often works fine (converges on a reasonable answer), but will quickly run away with difficult fits. 
-#returns: tuple of fitted parameters and error 
-
-#curve_fit in scipy.optimize 
-#use: fit=curve_fit (funct,xdata,ydata,p0=params0) 
-#comments: not quite as convenient, but more robust almost always will converge. 
-#returns: tuple of fitted parameters, covariance matrix sin( t + ) 
