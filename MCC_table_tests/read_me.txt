@@ -8,6 +8,7 @@ tweaks to solar_torque.py as needed.
 
 3.  Use Matlab FOT Tool's MCC to compute the current momentum and 
 solar torque errors using the flight environment:
+
     a.  Use Combined_Backstop_Maneuver_Summary.txt in 
         /home/aarvai/python/solar_torque/test_files
         while calls UNLOAD_check in the same directory.
