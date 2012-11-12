@@ -46,34 +46,33 @@ errs_old_torq = append_rss(errs_old_torq)
 errs_new_torq = append_rss(errs_new_torq)
 
 # Plot histograms 
-zipvals = zip((errs_old, errs_new, errs_old_torq, errs_new_torq), 
-              ('Old ', 'New ', 'Old ', 'New '),
-              (' Momentum', ' Momentum', ' Solar Torque', ' Solar Torque'),
-              ('ft-lbf-sec', 'ft-lbf-sec', 'ft-lbf', 'ft-lbf'),
-              ('mom_old', 'mom_new', 'torq_old', 'torq_new'),
-              (1, 1, .00001, .00001))
+zipvals = zip(((errs_old, errs_new), (errs_old_torq, errs_new_torq)), 
+              (' Momentum', ' Solar Torque'),
+              ('mom', 'torq'),
+              ('ft-lbf-sec', 'ft-lbf'),
+              ('5-min pts', 'Dwells'),
+              (1, .00001))
 for plot_log in [True, False]:
-    for var, varstr1, varstr2, xlab, figname, d_bin in zipvals:
-        figure() 
+    for var, varstr, figname, xlab, ylab, d_bin in zipvals:
+        figure(figsize=[16,11])
         labels = ('Roll', 'Pitch', 'Yaw', 'Total')
-        max_error = ceil_to_value(abs(np.max(var)), d_bin)
-        #max_error = ceil(abs(np.max(var))) 
+        max_error = max(np.abs(np.max(var[0])), np.abs(np.max(var[1])))
+        max_bin = ceil_to_value(max_error, d_bin)
         for i in range(4):
-            subplot(4, 1, i + 1)
-            if plot_log == True:
-                hist(var[:, i], bins=arange(-max_error, max_error + d_bin, d_bin), 
-                     log=True)
-            else:  
-                hist(var[:, i], bins=arange(-max_error, max_error + d_bin, d_bin))
-            title(varstr1 + labels[i] + varstr2 + ' Prediction Errors')
+            subplot(2, 2, i + 1)
+            hist(var[0][:, i], bins=arange(-max_bin, max_bin + d_bin, d_bin), 
+                 alpha=.1, hatch='/', color='b', log=plot_log, label='old')
+            hist(var[1][:, i], bins=arange(-max_bin, max_bin + d_bin, d_bin), 
+                 alpha=.1, hatch='\\', color='r', log=plot_log, label='new')
+            legend()     
+            title(labels[i] + varstr + ' Prediction Errors')
             xlabel(xlab)
-            ylabel('Occurrences')
-            xlim((-max_error, max_error))
-        tight_layout()
-        if plot_log == True:  
-            savefig('hist_' + figname + '_log.png')
-        else:
-            savefig('hist_' + figname + '.png')
+            ylabel(ylab)
+            xlim((-max_bin, max_bin))
+            if plot_log == True:  
+                savefig('hist_' + figname + '_log.png')
+            else:
+                savefig('hist_' + figname + '.png')
 
 #close('all')
    
