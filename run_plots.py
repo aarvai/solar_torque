@@ -1,7 +1,5 @@
 from os import chdir
 
-from utilities import read_MCC_results
-
 chdir('plots')
 print('plotting...')
 
@@ -33,7 +31,7 @@ for vars, var_str, sub, ylims in zipvals:
     for roll_i, plot_str in zipvals2:
         i = (R[:,0] == roll_i)
         plot(P[i,:][0], vars[i,:][0], plot_str, label='Roll = ' + str(roll_i))
-    #plot(avg_pitch, avg_torque[:, sub - 1], '.')
+    plot(avg_pitch, avg_torque[:, sub - 1], '.')
     title('New ' + var_str + ' Torques for Various Roll Angles')
     #legend(loc='best')
     grid()
@@ -225,26 +223,6 @@ scatter(t1[i] + 1/2 * dur[i], torque[i,2], c=dur[i], lw=0)
 ylim([-0.0001, 0.0001])
 colorbar()
 savefig('avg_by_time_dur.png')
-
-# Plot histograms of prediction errors 
-zipvals = zip(('orig_mom_pred_vs_tlm.txt', 'new_mom_pred_vs_tlm_weights_1_over_sigma.txt'), ('Old ', 'New '))
-for filename, varstr in zipvals:
-    pred, act = read_MCC_results('../MCC_table_tests/' + filename)
-    errs = act - pred
-    errs_rss = sqrt(diag(errs.dot(errs.transpose())))
-    errs2 = hstack((errs, atleast_2d(errs_rss).transpose())) #append RSS as 4th column
-    figure() 
-    labels = ('Roll', 'Pitch', 'Yaw', 'Total')
-    max_error = ceil(abs(np.max(errs))) 
-    for i in range(4):
-        subplot(4, 1, i + 1)
-        hist(errs2[:, i], bins=arange(-max_error, max_error + 1), log=True)
-        title(varstr + labels[i] + ' Momentum Prediction Errors')
-        xlabel('ft-lbf-sec')
-        ylabel('Occurrences')
-        xlim((-max_error, max_error))
-    tight_layout()
-    savefig('hist_' + varstr.lower() + '.png')
 
 # Plot 0 deg Roll through Time
 f = open('../pitch_0_roll_thru_time.txt', 'r')
