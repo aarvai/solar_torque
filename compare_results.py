@@ -9,8 +9,8 @@ print('comparing results...')
 chdir('plots')
 
 # Import predictions and actuals from MCC results text files
-t_mcc1, pred_old, act1 = read_MCC_results('../MCC_table_tests/orig_mom_pred_vs_tlm.txt')
-t_mcc2, pred_new, act2 = read_MCC_results('../MCC_table_tests/new_mom_pred_vs_tlm.txt')
+t_mcc1, pred_old, act1 = read_MCC_results('../MCC_tests/orig_mom_pred_vs_tlm.txt')
+t_mcc2, pred_new, act2 = read_MCC_results('../MCC_tests/new_mom_pred_vs_tlm.txt')
 if all(act1 == act2) & all(t_mcc1 == t_mcc2):
     act = act1
     t_mcc = t_mcc1
