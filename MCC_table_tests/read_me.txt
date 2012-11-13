@@ -23,7 +23,7 @@ solar torque errors using the flight environment:
 
     e.  Use Ephemeris File Chandra_12150_13001.stk. 
     
-    f.  On Momentum plot, overlay telemetry
+    f.  On Momentum plot, overlay telemetry.
 
     g.  Export Plot2Text as mom_pred_vs_tlm.txt
     
