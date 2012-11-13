@@ -24,7 +24,9 @@ msids = ['AOSYMOM1', 'AOSYMOM2', 'AOSYMOM3',
          'AOPCADMD', 'AOACASEQ', 'DIST_SATEARTH', 
          'PITCH', 'ROLL']
 x = fetch.Msidset(msids, t_start, t_stop, stat='5min')
-x.interpolate(dt=300)
+#start interp 1 day later to ensure even intervals
+interp_start = Time.DateTime(Time.DateTime(t_start).secs + 86400).date 
+x.interpolate(dt=300.0, start=interp_start)
 
 # Identify dwell start and stop times
 print('identifying dwell start and stop times...')
