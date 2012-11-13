@@ -56,7 +56,7 @@ for plot_log in [True, False]:
     for var, varstr, figname, xlab, ylab, d_bin in zipvals:
         figure(figsize=[16,11])
         labels = ('Roll', 'Pitch', 'Yaw', 'Total')
-        max_error = max(np.abs(np.max(var[0])), np.abs(np.max(var[1])))
+        max_error = max(abs(np.max(var[0])), abs(np.max(var[1])))
         max_bin = ceil_to_value(max_error, d_bin)
         for i in range(4):
             subplot(2, 2, i + 1)
