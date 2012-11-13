@@ -2,3 +2,4 @@
 *.npy
 *.pyc
 plots*
+comparison_runs*
