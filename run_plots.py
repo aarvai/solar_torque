@@ -243,7 +243,7 @@ for line in lines[:2]:
 for line in lines[2:]:
     fields = line.split()
     plot(arange(45,181), fields[1:], label=fields[0])
-legend()
+legend(loc='best')
 grid()
 title('0 Deg Roll Throughout Time')
 ylabel('Y-Torque [ft-lbf]')
