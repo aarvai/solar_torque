@@ -13,7 +13,7 @@ from bad_times import nsm, ssm, outliers
 close('all')
 
 # Inputs
-t_start = '2008:001'
+t_start = '2000:001'
 t_stop = '2012:310'
 min_alt = 66400000 #m from center of earth
 min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
