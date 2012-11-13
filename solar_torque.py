@@ -190,6 +190,7 @@ f.close()
 # Print zero roll values to file for analysis through time
 #f = open('pitch_0_roll_thru_time.txt', 'a')
 #f.write('\n' + 'old  ' + str(Y_old[30,:]))
+#f.write('\n' + 'new  ' + str(Y_new[30,:]))
 #f.close()
 
 # execfile('run_plots.py')
