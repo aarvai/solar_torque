@@ -3,7 +3,7 @@ from os import chdir
 chdir('plots')
 print('plotting...')
 
-# Plot solar torques  in 3D
+# Plot solar torques  in 3D - as indiv plots
 zipvals = zip((X_old, Y_old, Z_old, X_new, Y_new, Z_new),
               ('Old X', 'Old Y', 'Old Z', 'New X', 'New Y', 'New Z'),
               (0, 1, 2, 0, 1, 2))
@@ -21,6 +21,21 @@ for var, var_str, col in zipvals:
     ax.set_zlim((np.min(avg_torque[:,col]), np.max(avg_torque[:,col])))
     figname2 = var_str[:3] + '_' + var_str[4] + '_3d_pts.png'
     savefig(figname2.lower())
+
+# Plot solar torques  in 3D - as subplots
+fig = figure(figsize=[16,11])
+zipvals = zip((X_old, Y_old, Z_old, X_new, Y_new, Z_new),
+              ('Old X', 'Old Y', 'Old Z', 'New X', 'New Y', 'New Z'),
+              (0, 1, 2, 0, 1, 2),
+              (231, 232, 233, 234, 235, 236))
+for var, var_str, col, sub in zipvals:
+    ax = fig.add_subplot(sub, projection='3d')
+    ax.plot_surface(R, P, var, cmap='jet')
+    title(var_str + ' Torques [ft-lbf]')
+    xlabel('Roll [deg]')
+    ylabel('Pitch [deg]')
+    ax.set_zlim((np.min(avg_torque[:,col]), np.max(avg_torque[:,col])))
+    savefig('torque_comparisons.png')
 
 # Plot new torques by pitch for various roll angles
 figure()
@@ -108,7 +123,7 @@ for vars, var_str, sub, ylims in zipvals:
 tight_layout()
 savefig('both_at_90_pitch.png')
 
-# Plot torques by time (to identify outliers for filtering)
+# Plot torques by time (to identify outliers for filtering) - as indiv plots
 labels = ('X', 'Y', 'Z')
 for i in range(3):
     figure()
@@ -116,6 +131,17 @@ for i in range(3):
     title(labels[i] + ' Torque vs Time')
     ylabel('ft-lbf')
     savefig('all_' + labels[i].lower() + '_pts_by_time.png')
+
+# Plot torques by time (to identify outliers for filtering) - as subplots
+labels = ('X', 'Y', 'Z')
+figure()
+for i in range(3):
+    subplot(3,1,i + 1)
+    plot_cxctime(t1 + 1/2 * dur, torque[:,i], 'b*')
+    title(labels[i] + ' Torque vs Time')
+    ylabel('ft-lbf')
+tight_layout()
+savefig('all_pts_by_time.png')
 
 # Plot torques by time, colored by roll, pitch, and dur (again for outliers)
 zipvals = zip((roll_1, pitch_1, dur), ('Roll', 'Pitch', 'Duration'))
@@ -145,7 +171,7 @@ for var, var_str in zipvals:
 figure()
 labels = ('X', 'Y', 'Z')
 subplot(3, 1, 1)
-title('Torques by Attitude w/o Surface Fit, Color = cTorque')
+title('Torques by Attitude w/o Surface Fit, Color = Torque')
 for i in range(3):
    subplot(3, 1, i + 1)
    scatter(avg_pitch, avg_roll, c=avg_torque[:,i], marker='o', cmap=cm.jet, lw=0)
