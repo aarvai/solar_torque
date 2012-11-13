@@ -5,15 +5,16 @@ from Chandra import Time
 from utilities import read_MCC_results, find_closest, find_last_before, \
                       find_first_after, append_rss, ceil_to_value
 
-# Inputs
-
-
 print('comparing results...')
 chdir('plots')
 
 # Import predictions and actuals from MCC results text files
-t_mcc, pred_old, act = read_MCC_results('../MCC_table_tests/orig_mom_pred_vs_tlm.txt')
-t_mcc, pred_new, act = read_MCC_results('../MCC_table_tests/new_mom_pred_vs_tlm.txt')
+t_mcc1, pred_old, act1 = read_MCC_results('../MCC_table_tests/orig_mom_pred_vs_tlm.txt')
+t_mcc2, pred_new, act2 = read_MCC_results('../MCC_table_tests/new_mom_pred_vs_tlm.txt')
+if all(act1 == act2) & all(t_mcc1 == t_mcc2):
+    act = act1
+    t_mcc = t_mcc1
+else:  print('actuals and/or times do not match between input files')
 
 # Identify good dwell start and stop times 
 # (uses results from solar_torque.py)
