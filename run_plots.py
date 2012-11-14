@@ -135,11 +135,12 @@ for i in range(3):
 # Plot torques by time (to identify outliers for filtering) - as subplots
 labels = ('X', 'Y', 'Z')
 figure()
+subplot(3,1,1)
+title('Torques by Time')
 for i in range(3):
     subplot(3,1,i + 1)
     plot_cxctime(t1 + 1/2 * dur, torque[:,i], 'b*')
-    title(labels[i] + ' Torque vs Time')
-    ylabel('ft-lbf')
+    ylabel(labels[i] + ' Torque [ft-lbf]')
 tight_layout()
 savefig('all_pts_by_time.png')
 
