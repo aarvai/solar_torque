@@ -127,13 +127,13 @@ avg_atts = [(avg_pitch[i], avg_roll[i]) for i in range(num_atts)]
 print('fitting data...')
 def model_x(att, a, b, c):
     return a + b*att[0] + c*att[1]
-def model_y(att, a, b, c, d):
-    return a + b*sin(att[0]*c + d) 
+def model_y(att, a, b, c, d, e):
+   return a + b*att[0] + c*att[0]**2 + d*att[0]**3 + e*att[0]**4
 def model_z(att, a, b):
     return a + b*att[1]
 avg_atts_array = array(avg_atts).transpose()
 x0 = [ -6.24346074e-06,   6.51787933e-08,   7.25513601e-07]
-y0 = [ -6.46051399e-05,  -4.08457660e-05,   4.69801335e-02,   1.46983147e+00]
+y0 = [ -2.06922329e-04,   7.14278290e-06,  -8.11274024e-08,   2.09825998e-10,   2.94297844e-13]
 z0 = [  1.00000000e-05,  -3.07692308e-06]
 x_params, x_covar = optimize.curve_fit(model_x, avg_atts_array, avg_torque[:,0], p0=x0, sigma=1/total_dur, maxfev=1000000)    
 y_params, y_covar = optimize.curve_fit(model_y, avg_atts_array, avg_torque[:,1], p0=y0, sigma=1/total_dur, maxfev=1000000) 
