@@ -52,7 +52,7 @@ zipvals = zip(((errs_old, errs_new), (errs_old_torq, errs_new_torq)),
               ('mom', 'torq'),
               ('ft-lbf-sec', 'ft-lbf'),
               ('5-min pts', 'Dwells'),
-              (1, .00001))
+              (0.5, .000005))
 for plot_log in [True, False]:
     for var, varstr, figname, xlab, ylab, d_bin in zipvals:
         figure(figsize=[16,11])
