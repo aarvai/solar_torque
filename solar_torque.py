@@ -13,8 +13,8 @@ from bad_times import nsm, ssm, outliers
 close('all')
 
 # Inputs
-t_start = '2000:001'
-t_stop = '2012:310'
+t_start = '2010:001'
+t_stop = '2013:001'
 min_alt = 66400000 #m from center of earth
 min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
 
@@ -188,17 +188,21 @@ f.write('Original SS Errors:  ' + str([x0_err_ss, y0_err_ss, z0_err_ss]))
 f.close()
 
 # Print zero roll values to file for analysis through time
-f = open('x_0_roll_thru_time.txt', 'a')
-f.write('\n' + 'old  ' + str(X_old[30,:]))
-f.write('\n' + 'new  ' + str(X_new[30,:]))
-f.close()
-f = open('y_0_roll_thru_time.txt', 'a')
-f.write('\n' + 'old  ' + str(Y_old[30,:]))
-f.write('\n' + 'new  ' + str(Y_new[30,:]))
-f.close()
-f = open('z_0_roll_thru_time.txt', 'a')
-f.write('\n' + 'old  ' + str(Z_old[30,:]))
-f.write('\n' + 'new  ' + str(Z_new[30,:]))
-f.close()
+#f = open('x_0_roll_thru_time.txt', 'a')
+#f.write('\n' + 'old  ' + str(X_old[30,:]))
+#f.write('\n' + 'new  ' + str(X_new[30,:]))
+#f.close()
+#f = open('y_0_roll_thru_time.txt', 'a')
+#f.write('\n' + 'old  ' + str(Y_old[30,:]))
+#f.write('\n' + 'new  ' + str(Y_new[30,:]))
+#f.close()
+#f = open('z_0_roll_thru_time.txt', 'a')
+#f.write('\n' + 'old  ' + str(Z_old[30,:]))
+#f.write('\n' + 'new  ' + str(Z_new[30,:]))
+#f.close()
+#f = open('z_90_pitch_thru_time.txt', 'a')
+#f.write('\n' + 'old  ' + str(Z_old[:,45]))
+#f.write('\n' + 'new  ' + str(Z_new[:,45]))
+#f.close()
 
 # execfile('run_plots.py')
