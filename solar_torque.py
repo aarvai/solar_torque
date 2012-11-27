@@ -134,7 +134,7 @@ def model_z(att, a, b):
 avg_atts_array = array(avg_atts).transpose()
 x0 = [ -1.39208956e-05,   2.07021035e-07,  -5.43520011e-10,   5.35834362e-07]
 y0 = [ -2.06922329e-04,   7.14278290e-06,  -8.11274024e-08,   2.09825998e-10,   2.94297844e-13]
-z0 = [  8.00000000e-06,  -1.33333333e-06]
+z0 = [  1.00000000e-05,  -3.07692308e-06]
 x_params, x_covar = optimize.curve_fit(model_x, avg_atts_array, avg_torque[:,0], p0=x0, sigma=1/total_dur, maxfev=1000000)    
 y_params, y_covar = optimize.curve_fit(model_y, avg_atts_array, avg_torque[:,1], p0=y0, sigma=1/total_dur, maxfev=1000000) 
 z_params, z_covar = optimize.curve_fit(model_z, avg_atts_array, avg_torque[:,2], p0=z0, sigma=1/total_dur, maxfev=1000000) 
