@@ -37,51 +37,55 @@ for var, var_str, col, sub in zipvals:
     ax.set_zlim((np.min(avg_torque[:,col]), np.max(avg_torque[:,col])))
     savefig('torque_comparisons.png')
 
-# Plot new torques by pitch for various roll angles
-figure()
+# Plot new torques vs pitch, color = roll
+figure(figsize=[8, 10.5])
 zipvals = zip((X_new, Y_new, Z_new),
               ('X', 'Y', 'Z'),
               (1,2,3), 
               ([-0.00006, 0.00008], [-0.0008, 0.0004], [-0.0001, 0.0001]))
-zipvals2 = zip((-30, -20, -10, 0, 10, 20, 30),
-               ('r:', 'b:', 'g:', 'k', 'g-', 'b-', 'r-'))
+zipvals2 = zip((-15, -1, 4, 12),
+               ('b-', 'g', 'y', 'r-'))
 for vars, var_str, sub, ylims in zipvals:
     subplot(3,1,sub)
     for roll_i, plot_str in zipvals2:
         i = (R[:,0] == roll_i)
-        plot(P[i,:][0], vars[i,:][0], plot_str, label='Roll = ' + str(roll_i))
-    plot(avg_pitch, avg_torque[:, sub - 1], '.')
-    title('New ' + var_str + ' Torques for Various Roll Angles')
-    #legend(loc='best')
+        plot(P[i,:][0], vars[i,:][0], plot_str, label='Roll = ' + str(roll_i), linewidth=3)
+    scatter(avg_pitch, avg_torque[:, sub - 1], s=7, c=avg_roll, lw=0)
+    title('New ' + var_str + ' Torques vs Pitch, Color = Roll')
     grid()
     xlabel('Pitch Angle [deg]')
     ylabel(var_str + ' Torque [ft-lbf]')
     #ylim(ylims)
 tight_layout()
-savefig('new_by_pitch_various_rolls.png')
+for i in range(3):
+    subplot(3,1,i+1)
+    colorbar()
+savefig('new_vs_pitch_color_roll2.png')
 
-# Plot new torques by roll for various pitch angles
-figure()
+# Plot new torques vs roll, color = pitch
+figure(figsize=[8, 10.5])
 zipvals = zip((X_new, Y_new, Z_new),
               ('X', 'Y', 'Z'),
               (1,2,3), 
               ([-0.00006, 0.00008], [-0.0008, 0.0004], [-0.0001, 0.0001]))
-zipvals2 = zip((45, 70, 90, 110, 135, 155, 180),
-               ('r:', 'b:', 'g:', 'k', 'g-', 'b-', 'r-'))
+zipvals2 = zip((65, 110, 130, 160),
+               ('b-', 'g', 'y', 'r-'))
 for vars, var_str, sub, ylims in zipvals:
     subplot(3,1,sub)
     for pitch_i, plot_str in zipvals2:
         i = (P[0,:] == pitch_i)
-        plot(R[:,i], vars[:,i], plot_str, label='Pitch = ' + str(pitch_i))
-    plot(avg_roll, avg_torque[:, sub - 1], '.')
-    title('New ' + var_str + ' Torques for Various Pitch Angles')
-    #legend(loc='best')
+        plot(R[:,i], vars[:,i], plot_str, label='Pitch = ' + str(pitch_i), linewidth=3)
+    scatter(avg_roll, avg_torque[:, sub - 1], s=7, c=avg_pitch, lw=0)
+    title('New ' + var_str + ' Torques vs Roll, Color = Pitch')
     grid()
     xlabel('Roll Angle [deg]')
     ylabel(var_str + ' Torque [ft-lbf]')
     #ylim(ylims)
 tight_layout()
-savefig('new_by_roll_various_pitches.png')
+for i in range(3):
+    subplot(3,1,i+1)
+    colorbar()
+savefig('new_vs_roll_color_pitch2.png')
 
 # Compare old and new torques at zero roll angle
 zipvals = zip(((X_old, X_new), (Y_old, Y_new), (Z_old, Z_new)),
@@ -143,6 +147,13 @@ for i in range(3):
     ylabel(labels[i] + ' Torque [ft-lbf]')
 tight_layout()
 savefig('all_pts_by_time.png')
+
+# Plot off-nominal roll by time
+figure()
+plot_cxctime(t1 + dur/2, roll, '.')
+title('Off-nominal Roll vs Time')
+ylabel('deg')
+savefig('roll_vs_time.png')
 
 # Plot torques by time, colored by roll, pitch, and dur (again for outliers)
 zipvals = zip((roll_1, pitch_1, dur), ('Roll', 'Pitch', 'Duration'))
@@ -259,26 +270,12 @@ for i in range(3):
 tight_layout()
 savefig('avg_by_time_dur.png')
 
-# Plot 0 deg Roll through Time
-f = open('../pitch_0_roll_thru_time.txt', 'r')
-lines = f.readlines()
-f.close()
-figure()
-for line in lines[:2]:
-    fields = line.split()
-    plot(arange(45,181), fields[1:], label=fields[0], linewidth=5)
-for line in lines[2:]:
-    fields = line.split()
-    plot(arange(45,181), fields[1:], label=fields[0])
-legend(loc='best')
-grid()
-title('0 Deg Roll Throughout Time')
-ylabel('Y-Torque [ft-lbf]')
-xlabel('Pitch Angle [deg]')
-tight_layout()
-savefig('new_0_roll_thru_time.png')
-
 chdir('..')    
+
+close_figs = [14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30]
+for close_fig in close_figs:
+    close(close_fig)
+
 #close('all')  
     
     
