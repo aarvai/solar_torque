@@ -60,7 +60,7 @@ tight_layout()
 for i in range(3):
     subplot(3,1,i+1)
     colorbar()
-savefig('new_vs_pitch_color_roll2.png')
+savefig('new_vs_pitch_color_roll.png')
 
 # Plot new torques vs roll, color = pitch
 figure(figsize=[8, 10.5])
@@ -85,7 +85,7 @@ tight_layout()
 for i in range(3):
     subplot(3,1,i+1)
     colorbar()
-savefig('new_vs_roll_color_pitch2.png')
+savefig('new_vs_roll_color_pitch.png')
 
 # Compare old and new torques at zero roll angle
 zipvals = zip(((X_old, X_new), (Y_old, Y_new), (Z_old, Z_new)),
