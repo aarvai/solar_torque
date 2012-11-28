@@ -40,7 +40,8 @@ dur_dwells = atleast_2d(t_mcc[i2_mcc] - t_mcc[i1_mcc]).transpose()
 dur_dwells = hstack((dur_dwells, dur_dwells, dur_dwells))
 pred_old_torq = (pred_old[i2_mcc] - pred_old[i1_mcc]) / dur_dwells
 pred_new_torq = (pred_new[i2_mcc] - pred_new[i1_mcc]) / dur_dwells
-act_torq = (act[i2_mcc] - act[i1_mcc]) / dur_dwells
+# for actuals, use momentum predictions from Eng Archive - means have smaller errors
+act_torq = (mom_2[i_prop_start[0]:i_prop_stop[0], :] - mom_1[i_prop_start[0]:i_prop_stop[0], :]) / dur_dwells
 errs_old_torq = act_torq - pred_old_torq
 errs_new_torq = act_torq - pred_new_torq
 errs_old_torq = append_rss(errs_old_torq)
