@@ -29,7 +29,7 @@ solar torque errors using the flight environment:
     
     h.  Save PNG.
 
-    i.  Save workspace.	     
+    i.  Save workspace (although MCC probably can't import it - too large).	     
  
 4.  Create a new solar torque table using the outputs of Step 1.  In a 
 local version of Matlab, run "make_new_solarPressureTorqueTable.m".
@@ -41,6 +41,16 @@ local version of Matlab, run "make_new_solarPressureTorqueTable.m".
 solar torque table.  Save the results to a different file.
 
 7.  Back in the python console, execfile('compare_results.py') to ensure
-errors have sufficiently decreased.
+errors have sufficiently decreased.  Note that this script relies on 
+data from Step 1.
+
+8.  If it is desired to compare the results at key attitudes (e.g. zero 
+roll for X and Y torques, 90 deg pitch for Z torques), un-comment the 
+write-to-file commands at the end of solar_torque.py and add descriptive
+notes for the current run.  For example, "2000-2001" when only using 
+2000 and 2001 data.  This will append the parameters to the existing 
+text files.  Reformat new text to match current format.  Re-run Step 1
+as necessary.  Then plot results in python using 
+execfile('compare_thru_time.py').
     
     
