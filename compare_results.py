@@ -46,6 +46,14 @@ errs_new_torq = act_torq - pred_new_torq
 errs_old_torq = append_rss(errs_old_torq)
 errs_new_torq = append_rss(errs_new_torq)
 
+# Append RSS to momentum and torque
+act = append_rss(act)
+pred_old = append_rss(pred_old)
+pred_new = append_rss(pred_new)
+act_torq = append_rss(act_torq)
+pred_old_torq = append_rss(pred_old_torq)
+pred_new_torq = append_rss(pred_new_torq)
+ 
 # Plot histograms 
 zipvals = zip(((errs_old, errs_new), (errs_old_torq, errs_new_torq)), 
               (' Momentum', ' Solar Torque'),
@@ -74,6 +82,79 @@ for plot_log in [True, False]:
                 savefig('hist_' + figname + '_log.png')
             else:
                 savefig('hist_' + figname + '.png')
+
+# Plot Attitudes (easier to see than in MCC)
+x2 = fetch.Msidset(['PITCH', 'ROLL'], Time.DateTime(t_mcc[0]).date, Time.DateTime(t_mcc[-1]).date)
+figure(figsize=[16,5.5])
+subplot(2,1,1)
+plot_cxctime(x2['PITCH'].times, x2['PITCH'].vals)
+title('MCC Attitudes')
+ylabel('Pitch [deg]')
+subplot(2,1,2)
+plot_cxctime(x2['ROLL'].times, x2['ROLL'].vals)
+ylabel('Roll [deg]')
+savefig('mcc_atts.png')
+
+# Plot Momentum (easier to see than in MCC)
+figure(figsize=[16,11])
+ylab = ['X', 'Y', 'Z', 'Total']
+for i in range(4):
+    subplot(4,1,i+1)
+    plot_cxctime(t_mcc, act[:,i], 'k', label='Actual')
+    plot_cxctime(t_mcc, pred_old[:,i], 'b', label='Old Pred')
+    plot_cxctime(t_mcc, pred_new[:,i], 'r', label='New Pred')
+    ylabel(ylab[i] + ' Mom [ft-lbf-sec]')
+    grid()
+    if i == 0:
+        legend()
+        title('Predictions vs Actual Momentum')
+savefig('mcc_comp_mom.png')        
+    
+# Plot Momentum Errors
+figure(figsize=[16,11])
+ylab = ['X', 'Y', 'Z', 'Total']
+for i in range(4):
+    subplot(4,1,i+1)
+    plot_cxctime(t_mcc, errs_old[:,i], 'b.', label='Old Pred', markersize=5, mew=0)
+    plot_cxctime(t_mcc, errs_new[:,i], 'r.', label='New Pred', markersize=5, mew=0)
+    ylabel(ylab[i] + ' Mom Errors [ft-lbf-sec]')
+    grid()
+    if i == 0:
+        legend()
+        title('Momentum Errors')
+savefig('mcc_comp_mom_errs.png')  
+
+# Plot Torques
+figure(figsize=[16,11])
+ylab = ['X', 'Y', 'Z', 'Total']
+for i in range(4):
+    subplot(4,1,i+1)
+    plot_cxctime(array([t_mcc[0], t_mcc[-1]]), array([0,0]), 'w.', mew=0, markersize=0) #needed for x-axes to match up with momentum plots
+    plot_cxctime(t_mcc[i1_mcc] + dur_dwells[:,0] / 2, act_torq[:,i], 'k.', label='Actual', markersize=10, mew=0)
+    plot_cxctime(t_mcc[i1_mcc] + dur_dwells[:,0] / 2, pred_old_torq[:,i], 'b.', label='Old Pred', markersize=10, mew=0)
+    plot_cxctime(t_mcc[i1_mcc] + dur_dwells[:,0] / 2, pred_new_torq[:,i], 'r.', label='New Pred', markersize=10, mew=0)
+    ylabel(ylab[i] + ' Torque [ft-lbf]')
+    grid()
+    if i == 0:
+        legend()
+        title('Predictions vs Actual Torque')
+savefig('mcc_comp_torq.png')    
+
+# Plot Torque Errors
+figure(figsize=[16,11])
+ylab = ['X', 'Y', 'Z', 'Total']
+for i in range(4):
+    subplot(4,1,i+1)
+    plot_cxctime(array([t_mcc[0], t_mcc[-1]]), array([0,0]), 'w.', mew=0, markersize=0) #needed for x-axes to match up with momentum plots
+    plot_cxctime(t_mcc[i1_mcc] + dur_dwells[:,0] / 2, errs_old_torq[:,i], 'b.', label='Old Pred', markersize=10, mew=0)
+    plot_cxctime(t_mcc[i1_mcc] + dur_dwells[:,0] / 2, errs_new_torq[:,i], 'r.', label='New Pred', markersize=10, mew=0)
+    ylabel(ylab[i] + ' Torque Errors [ft-lbf]')
+    grid()
+    if i == 0:
+        legend()
+        title('Torque Errors')
+savefig('mcc_comp_torq_errs.png')   
+
 
 #close('all')
    
