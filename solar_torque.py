@@ -31,12 +31,12 @@ x.interpolate(dt=300.0, start=interp_start)
 # Identify dwell start and stop times
 print('identifying dwell start and stop times...')
 npm = (x['AOPCADMD'].vals == 'NPNT') & (x['AOACASEQ'].vals == 'KALM') 
-if any(~npm[:2]) | any(~npm[-3:]):
-    raise StandardError('Timeframe must start and end in Normal Point mode + 15 minute pad.')
-i1_npm = ~npm[:-3] & npm[1:-2] & npm[2:-1] & npm[3:]  # transition must be followed by 10 min NPM
-i2_npm = npm[:-3] & npm[1:-2] & npm[2:-1] & ~npm[3:]  # transition must be preceded by 10 min NPM
-i1_npm = append(append(zeros(2, dtype='bool'), i1_npm), zeros(1, dtype='bool')) # delay start time by 5 min
-i2_npm = append(append(zeros(2, dtype='bool'), i2_npm), zeros(1, dtype='bool')) 
+if any(~npm[:6]) | any(~npm[-6:]):
+    raise StandardError('Timeframe must start and end in Normal Point mode + 25 minute pad.')
+i1_npm = ~npm[:-5] & npm[1:-4] & npm[2:-3] & npm[3:-2] & npm[4:-1] & npm[5:] # transition must be followed by 20 min NPM
+i2_npm = npm[:-5] & npm[1:-4] & npm[2:-3] & npm[3:-2] & npm[4:-1] & ~npm[5:]  # transition must be preceded by 20 min NPM
+i1_npm = append(append(zeros(3, dtype='bool'), i1_npm), zeros(2, dtype='bool')) # delay start time by 10 min
+i2_npm = append(append(zeros(3, dtype='bool'), i2_npm), zeros(2, dtype='bool')) 
 i1_npm[nonzero(i1_npm)[0][-1]] = False  # need pairs:  discard last start
 i2_npm[nonzero(i2_npm)[0][0]] = False   # need pairs:  discard first stop
 if sum(i1_npm) != sum(i2_npm):
