@@ -16,7 +16,7 @@ close('all')
 t_start = '2010:001'
 t_stop = '2013:001'
 min_alt = 66400000 #m from center of earth
-min_dur = 2500 #sec (shorter dwells yielded inaccurate readings)
+min_dur = 6000 #sec (Shorter dwells yielded inaccurate readings although most outliers below 2500 sec)
 
 # Fetch data
 print('fetching data...')
